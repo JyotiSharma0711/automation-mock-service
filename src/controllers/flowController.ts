@@ -361,6 +361,7 @@ export async function ActUponFlow(req: ApiRequest, res: Response) {
 			return;
 		}
 		const latestMeta = getNextActionMetaData(txData, flow, flowStatus.status);
+		console.log("latestMeta>>>>>>>>>>>", latestMeta);
 		if (!latestMeta) {
 			// logger.info("Mock response is not required");
 			logInfo({
@@ -416,6 +417,25 @@ export async function ActUponFlow(req: ApiRequest, res: Response) {
 			});
 
 			const sessionData = await loadMockSessionData(txId, subscriberUrl);
+			// Extract domain from session data or use default
+			let domain = sessionData.domain || process.env.DOMAIN || "ONDC:FIS10";
+			
+			console.log("flowController - sessionData.domain:", sessionData.domain);
+			console.log("flowController - process.env.DOMAIN:", process.env.DOMAIN);
+			console.log("flowController - initial domain:", domain);
+			
+			// Validate and normalize domain
+			switch (domain) {
+				case "ONDC:FIS14":
+				case "ONDC:TRV14":
+				case "ONDC:FIS10":
+					break;
+				default:
+					domain = "ONDC:FIS10";
+					break;
+			}
+			
+			console.log("flowController - final domain:", domain);
 			let mockResponse = await generateMockResponse(
 				txData.sessionId as string,
 				sessionData,
@@ -497,7 +517,7 @@ export async function ActUponFlow(req: ApiRequest, res: Response) {
 		});
 		res.status(200).send(setAckResponse(true));
 		return;
-	} catch (e) {
+			} catch (e) {
 		// logger.error("Error in ActUponFlow", e);
 		logError({
 			message: "Error in ActUponFlow",
@@ -511,7 +531,11 @@ export async function ActUponFlow(req: ApiRequest, res: Response) {
 			error: e,
 		});
 		await deleteFlowStatusService(txId, subscriberUrl);
-		res.status(500).send("Error in ActUponFlow");
+		
+		// Check if response has already been sent
+		if (!res.headersSent) {
+			res.status(500).send("Error in ActUponFlow");
+		}
 		return;
 	}
 }

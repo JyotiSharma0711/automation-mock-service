@@ -1,0 +1,33 @@
+intent:
+  category:
+    descriptor:
+      code: MUTUAL_FUNDS
+  fulfillment:
+    agent:
+      organization:
+        creds:
+          - id: ARN-125784
+            type: ARN
+  tags:
+    - descriptor:
+        code: INCREMENTAL_PULL
+        name: Incremental Pull
+      display: false
+      list:
+        - descriptor:
+            code: REGISTER
+            name: Register
+          value: "true"
+    - descriptor:
+        code: BAP_TERMS
+        name: BAP Terms of Engagement
+      display: false
+      list:
+        - descriptor:
+            code: STATIC_TERMS
+            name: Static Terms (Transaction Level)
+          value: https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1
+        - descriptor:
+            code: OFFLINE_CONTRACT
+            name: Offline Contract
+          value: "true"

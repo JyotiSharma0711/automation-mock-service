@@ -66,6 +66,24 @@ export async function generateMockResponseMiddleware(
 			txn,
 			req.queryData.subscriber_url as string
 		);
+		// Extract domain from session data or use default
+		let domain = sessionData.domain || process.env.DOMAIN || "ONDC:FIS10";
+		console.log("generationController - sessionData.domain:", sessionData.domain);
+		console.log("generationController - process.env.DOMAIN:", process.env.DOMAIN);
+		console.log("generationController - extracted domain:", domain);
+		
+		// Validate and normalize domain
+		switch (domain) {
+			case "ONDC:FIS14":
+			case "ONDC:TRV14":
+			case "ONDC:FIS10":
+				// Valid domains, keep as is
+				break;
+			default:
+				// Unknown domain, default to FIS10
+				domain = "ONDC:FIS10";
+				break;
+		}
 		const mockResponse = await generateMockResponse(
 			req.queryData.session_id ?? "",
 			sessionData,

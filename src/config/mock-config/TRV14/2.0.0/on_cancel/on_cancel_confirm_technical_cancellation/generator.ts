@@ -5,5 +5,5 @@ export async function onCancelConfirmTechnicalCancellationGenerator(existingPayl
   }
   existingPayload.message.order.status = "CANCELLED";
 
-  return existingPayload;
+  return existingPayload; 
 } 

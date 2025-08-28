@@ -55,6 +55,9 @@ export function fetchFlow(sessionData: SessionCache, flowId: string): Flow {
 		message: "Entering fetchFlow Function.",
 		meta: { flowId },
 	});
+	console.log("fetchFlow - sessionData.domain:", sessionData?.domain);
+	console.log("fetchFlow - flowId:", flowId);
+	console.log("fetchFlow - available flowConfigs:", Object.keys(sessionData?.flowConfigs || {}));
 	try {
 		const flow = sessionData.flowConfigs[flowId];
 		if (!flow) {

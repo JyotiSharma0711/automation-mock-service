@@ -17,6 +17,7 @@ export function getNextActionMetaData(
 			flowStatus,
 		},
 	});
+	console.log("transactionData>>>>>>>>>>>", transactionData.flowId);
 	const flowDetails = getFlowCompleteStatus(transactionData, flow, flowStatus);
 	const latestApi = flowDetails.sequence.find((s) =>
 		["LISTENING", "RESPONDING", "INPUT-REQUIRED"].includes(s.status)

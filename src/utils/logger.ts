@@ -118,7 +118,19 @@ const logFormat = printf(
 			: ""; // Yellow for transaction ID
 		const coloredMeta =
 			meta && Object.keys(meta).length > 0
-				? chalk.gray(JSON.stringify(meta))
+				? chalk.gray(JSON.stringify(meta, (() => {
+						const seen = new WeakSet();
+						return (key, value) => {
+							// Handle circular references
+							if (typeof value === 'object' && value !== null) {
+								if (seen.has(value)) {
+									return '[Circular Reference]';
+								}
+								seen.add(value);
+							}
+							return value;
+						};
+					})()))
 				: "";
 		return `${coloredTimestamp} ${coloredtransaction_id}${coloredLevel}: ${coloredMessage} ${coloredStack} ${coloredMeta}`;
 	}
@@ -154,11 +166,45 @@ const logger = winston.createLogger({
 
 // Logging functions
 const logInfo = ({ message, transaction_id, meta }: LogParams): void => {
-	logger.info(message, { transaction_id }); //...meta
+	// Clean meta object to remove circular references
+	const cleanMeta = meta ? Object.keys(meta).reduce((acc, key) => {
+		const value = meta[key];
+		if (typeof value === 'object' && value !== null) {
+			// Skip objects that might contain circular references
+			if (key === 'req' || key === 'res' || key === 'socket' || 
+				key === 'transactionData' || key === 'request' || key === 'response') {
+				acc[key] = '[Object]';
+			} else {
+				acc[key] = value;
+			}
+		} else {
+			acc[key] = value;
+		}
+		return acc;
+	}, {} as any) : {};
+	
+	logger.info(message, { transaction_id, ...cleanMeta });
 };
 
 const logDebug = ({ message, transaction_id, meta }: LogParams): void => {
-	logger.debug(message, { transaction_id }); //...meta
+	// Clean meta object to remove circular references
+	const cleanMeta = meta ? Object.keys(meta).reduce((acc, key) => {
+		const value = meta[key];
+		if (typeof value === 'object' && value !== null) {
+			// Skip objects that might contain circular references
+			if (key === 'req' || key === 'res' || key === 'socket' || 
+				key === 'transactionData' || key === 'request' || key === 'response') {
+				acc[key] = '[Object]';
+			} else {
+				acc[key] = value;
+			}
+		} else {
+			acc[key] = value;
+		}
+		return acc;
+	}, {} as any) : {};
+	
+	logger.debug(message, { transaction_id, ...cleanMeta });
 };
 
 const logError = ({
@@ -167,10 +213,27 @@ const logError = ({
 	error,
 	meta,
 }: LogParams): void => {
+	// Clean meta object to remove circular references
+	const cleanMeta = meta ? Object.keys(meta).reduce((acc, key) => {
+		const value = meta[key];
+		if (typeof value === 'object' && value !== null) {
+			// Skip objects that might contain circular references
+			if (key === 'req' || key === 'res' || key === 'socket' || 
+				key === 'transactionData' || key === 'request' || key === 'response') {
+				acc[key] = '[Object]';
+			} else {
+				acc[key] = value;
+			}
+		} else {
+			acc[key] = value;
+		}
+		return acc;
+	}, {} as any) : {};
+
 	if (error instanceof Error) {
-		logger.error(message, { transaction_id, stack: error.stack }); //...meta }
+		logger.error(message, { transaction_id, stack: error.stack, ...cleanMeta });
 	} else {
-		logger.error(message, { transaction_id, ...meta });
+		logger.error(message, { transaction_id, ...cleanMeta });
 	}
 };
 

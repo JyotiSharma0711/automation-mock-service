@@ -31,10 +31,14 @@ export async function saveDataForUnit(
 		payload?.context?.version || payload?.context?.core_version,
 		action
 	);
+	console.log("sessio 	Data", sessionData);
 	updateSessionData(saveData["save-data"], payload, sessionData, errorData);
 	if (!existsSync(path.resolve(__dirname, "./session-data"))) {
 		mkdirSync(path.resolve(__dirname, "./session-data"));
 	}
+
+	console.log("sessionData after update", sessionData);
+	
 	const filePath = path.resolve(__dirname, `./session-data/${action}.json`);
 	writeFileSync(filePath, JSON.stringify(sessionData, null, 2));
 }

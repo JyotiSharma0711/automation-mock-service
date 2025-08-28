@@ -62,6 +62,25 @@ export async function saveData(
 		const sessionData = await loadMockSessionData(
 			payload?.context.transaction_id
 		);
+		// Extract domain from payload context or session data
+		let domain = payload?.context?.domain || sessionData.domain || process.env.DOMAIN || "ONDC:FIS10";
+		console.log("data-services - payload.context.domain:", payload?.context?.domain);
+		console.log("data-services - sessionData.domain:", sessionData.domain);
+		console.log("data-services - process.env.DOMAIN:", process.env.DOMAIN);
+		console.log("data-services - extracted domain:", domain);
+		
+		// Validate and normalize domain
+		switch (domain) {
+			case "ONDC:FIS14":
+			case "ONDC:TRV14":
+			case "ONDC:FIS10":
+				// Valid domains, keep as is
+				break;
+			default:
+				// Unknown domain, default to FIS10
+				domain = "ONDC:FIS10";
+				break;
+		}
 		const saveData = getSaveDataContent(
 			payload?.context?.version || payload?.context?.core_version,
 			action
@@ -109,6 +128,10 @@ export async function loadMockSessionData(
 	const keyExists = await RedisService.keyExists(transactionID);
 	let sessionData: MockSessionData = {} as MockSessionData;
 	if (!keyExists) {
+		// Extract domain from environment or use FIS10 as default for testing
+		const domain = process.env.DOMAIN || "ONDC:FIS10";
+		console.log("loadMockSessionData - creating new session with domain:", domain);
+		
 		const raw = defaultSessionData();
 		sessionData = raw.session_data;
 		sessionData.transaction_id = transactionID;
@@ -116,12 +139,14 @@ export async function loadMockSessionData(
 		sessionData.bap_uri = "https://dev-automation.ondc.org/buyer";
 		sessionData.bpp_uri = "https://dev-automation.ondc.org/seller";
 		sessionData.subscriber_url = subscriber_url;
+		sessionData.domain = domain;
 		logger.info(`new session data is ${JSON.stringify(sessionData)}`);
 		return sessionData;
 	} else {
 		const rawData = await RedisService.getKey(transactionID);
 		logger.info(`loading session data for ${transactionID}`);
 		const sessionData = JSON.parse(rawData ?? "{}") as MockSessionData;
+		console.log("loadMockSessionData - loaded existing session with domain:", sessionData.domain);
 		return sessionData;
 	}
 }

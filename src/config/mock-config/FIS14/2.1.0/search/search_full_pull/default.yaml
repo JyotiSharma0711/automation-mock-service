@@ -1,0 +1,23 @@
+intent:
+  category:
+    descriptor:
+      code: MUTUAL_FUNDS
+  fulfillment:
+    agent:
+      organization:
+        descriptor:
+          name: "Mutual Fund Organization"
+  tags:
+    - descriptor:
+        code: BAP_TERMS
+        name: BAP Terms of Engagement
+      display: false
+      list:
+        - descriptor:
+            code: STATIC_TERMS
+            name: Static Terms (Transaction Level)
+          value: https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1
+        - descriptor:
+            code: OFFLINE_CONTRACT
+            name: Offline Contract
+          value: "true"

@@ -13,7 +13,8 @@ export default (req: Request, res: Response, next: NextFunction) => {
                 method: req.method,
                 url: req.url,
                 statusCode: res.statusCode,
-                body: data,
+                // Don't log the full body as it might contain circular references
+                bodyLength: typeof data === 'string' ? data.length : JSON.stringify(data).length,
             },
         });
 
@@ -22,16 +23,21 @@ export default (req: Request, res: Response, next: NextFunction) => {
     };
     res.send = function (data: any) {
         const transaction_id = req.body?.transaction_id;
-        logDebug({
+        
+        // Only log if response hasn't been sent yet
+        if (!res.headersSent) {
+                    logDebug({
             message: `Response Log`,
             transaction_id,
             meta: {
                 method: req.method,
                 url: req.url,
                 statusCode: res.statusCode,
-                body: data,
+                // Don't log the full body as it might contain circular references
+                bodyLength: typeof data === 'string' ? data.length : JSON.stringify(data).length,
             },
         });
+        }
 
         // Call the original res.send with the data
         return originalSend.call(this, data);
